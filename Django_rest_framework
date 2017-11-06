@@ -1,0 +1,94 @@
+为什么要使用Django REST framework?
+1.前后端分离的业务需要搭建API
+2.基于Django快速开发RESTful API
+
+
+Django REST framework   基于django可以快速开发出restful风格的api
+
+需要以下基础：
+
+掌握基本的python语法
+熟悉django
+了解http请求及状态码
+了解restful api规范
+
+RESTful API规范是什么？
+1.GET(select):从服务器取出资源(一项或者多项)
+2.POST(create):在服务器新建一个资源
+3.PUT(update):在服务器更新资源(客户端提供改变后的完整资源)
+4.DELETE(delete):从服务器删除资源
+5.PATCH(update):在服务器更新资源(客户端提供改变的属性)
+6.HRAD:获取资源的元数据
+7.OPTIONS:获取信息，关于资源的哪些属性是客户端可以改变的
+
+安装：
+pip install djangorestframework
+
+环境配置：
+添加app:rest_framework
+
+还有所有的关于restframework的设置都放在下面的设置里面：
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAdminUser',
+    ],
+    'PAGE_SIZE': 10
+}
+
+下面开始写代码了
+let＇s go
+
+第一先是序列化
+
+    创建一个Publisher表,里面有两个字段name address
+    然后创建迁移，然后迁移(在pycharm里面找到Tools,里面有一个Run manage.py Task)
+
+    序列化实现从数据库取数据，同时还能添加数据的功能，怎么实现的呢？
+    举例说明吧
+    先取数据：
+    p1 = Publisher.objects.all()　或者拿部分数据
+    serializer = PublisherSerializer(p1,many=True)
+    serializer.data
+
+    如果是添加数据呢:
+    p2 = {'name':'蜜橘出版社','address':'蜜橘街'}
+    serializer = PublisherSerializer(data=p2)
+    serializer.is_valid()
+    serializer.save()
+
+第二步　请求和响应
+
+
+
+第n步　认证与权限
+
+    @api_view()或者类视图写完后(最后会转化为通用视图),默认需要登录才有读写权限，这个时候我们可以在url中添加一句
+    url(r'^api-auto/',include('rest_framework.urls', namespace='rest_framework')),
+    然后通过createsuperuser创建一个用户,然后就可以访问了，
+    有一个缺陷就是任何用户都具有读写权限，这当然不是我们要的结果，我们需要定义一个对象级别的权限，因此
+    1:在Publisher表中添加一个字段operator;
+    2:然后在序列化里面添加这个字段;
+    3:还需要在app01里面添加一个模块permission.py,里面完成下面功能:
+        1:规定读权限被允许所有人，包括GET, HRAD, OPTIONS请求
+        2:规定只有publisher的所有者才允许写的权限
+    4:在PublisherList与PublisherDetail中添加permission_classes = (permissions.IsAuthenticated, IsOwnerOrReadOnly)
+    5:完毕
+    然后结果就是只有publisher的所有者才允许有写的权限，于此同时当前post的时候，所有者为当前用户
+
+关系和超链接
+
+    关系是指数据表与表之间的关系,
+    首先创建一个Book表，创建两个字段，标题与出版社，然后迁移
+    然后就是序列化的类添加BookSerializer的类
+    最后通过通用视图写两个类
+    再更新url
+    下一步查看结果
+    进去之后是一个空列表，这时候需要添加数据，然后就可以看出来，这个没有涉及用户权限的问题，所有的用户均可以操作，当然
+    您也可以在序列化模块,让BookSerializer继承HyperlinkedModelSerializer，这样就建立了一个连接，直接从这本书可以
+    跳转到这本书所对应的出版社
+    最后添加api root
+    最后就是分页
+
+
+
+
